@@ -1,0 +1,151 @@
+`timescale 1us / 1ns
+
+////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer:
+//
+// Create Date:   13:38:59 09/09/2020
+// Design Name:   EMD
+// Module Name:   E:/EMD/EMD_text/EMD_bench.v
+// Project Name:  EMD_text
+// Target Device:  
+// Tool versions:  
+// Description: 
+//
+// Verilog Test Fixture created by ISE for module: EMD
+//
+// Dependencies:
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+////////////////////////////////////////////////////////////////////////////////
+
+module EMD_bench;
+
+	// Inputs
+	reg CLK;
+	reg signed [15:0] Xin;;
+    reg start;
+	// Outputs
+	wire signed [15:0] Rout;
+	wire signed [15:0] C1;
+	wire signed [15:0] C2;
+	wire signed [15:0] C3;
+    wire signed [15:0] C4;
+	// Instantiate the Unit Under Test (UUT)
+	EMD uut (
+		.CLK(CLK), 
+		.Xin(Xin), 
+		.start(start),
+		.Rout(Rout),
+		.C1(C1),
+		.C2(C2),
+		.C3(C3),
+		.C4(C4)
+	);
+
+	reg [15:0] i=1;
+	reg signed [15:0] X [1:2000];
+    reg state;
+    parameter init = 1'b0, go = 1'b1;
+integer read_path;
+integer s;
+integer write_C1;
+integer write_C2;
+integer write_C3;
+integer write_C4;
+integer write_Rout;
+	initial begin
+		// Initialize Inputs
+		CLK = 0;
+		Xin = 0;
+		read_path = $fopen("E:/fcs/EMD_sim/echoqm.txt","r");
+//		$readmemh("E:/EMD/EMD_data/FPGA_DPSD.txt",X);//�����ƶ�ȡ�ļ�
+        write_C1 = $fopen("E:/fcs/EMD_sim/IMF1.txt","w");
+		write_C2 = $fopen("E:/fcs/EMD_sim/IMF2.txt","w");
+		write_C3 = $fopen("E:/fcs/EMD_sim/IMF3.txt","w");
+		write_C4 = $fopen("E:/fcs/EMD_sim/IMF4.txt","w");
+        write_Rout = $fopen("E:/fcs/EMD_sim/FPGA_EMD.txt","w");
+        
+//        read_path = $fopen("E:/fcs/tight_sandstone/tight_sandstone/echo_string_sandstone.txt","r");
+////		$readmemh("E:/EMD/EMD_data/FPGA_DPSD.txt",X);//�����ƶ�ȡ�ļ�
+//        write_C1 = $fopen("E:/fcs/tight_sandstone/tight_sandstone/IMF1.txt","w");
+//		write_C2 = $fopen("E:/fcs/tight_sandstone/tight_sandstone/IMF2.txt","w");
+//		write_C3 = $fopen("E:/fcs/tight_sandstone/tight_sandstone/IMF3.txt","w");
+//		write_C4 = $fopen("E:/fcs/tight_sandstone/tight_sandstone/IMF4.txt","w");
+//        write_Rout = $fopen("E:/fcs/tight_sandstone/tight_sandstone/FPGA_EMD.txt","w");
+        
+		start =0;
+		
+	    for(i=1;i < 2001;i = i+1)
+        begin
+          s = $fscanf(read_path,"%d",X[i]);
+        end
+		// Wait 100 ns for global reset to finish
+		// Add stimulus here
+		$fclose(read_path);
+		
+		# 100;
+	end
+	
+
+always #300 CLK = ~CLK;
+
+always@(posedge CLK)
+begin
+    case(state)
+        init:
+        begin
+            state <= go;
+            i <= 0;
+            start <= 1;
+        end
+        go:
+        begin
+            Xin <= X[i+1];
+            i <= i+1;
+            if(X[i+1] == 16'bz || X[i+1] == 16'bx)Xin <= 0;
+        end
+        default state <= init;
+    endcase
+end
+
+
+
+
+
+always @(posedge CLK)
+begin
+if(i <= 920&&i >= 121 && state)
+begin
+    $fwrite(write_C1,"%d",C1);//д����
+    $fwrite(write_C1," ");//д
+end
+if(i <= 1040&& i>= 241 && state)
+begin
+    $fwrite(write_C2,"%d",C2);//д����
+    $fwrite(write_C2," ");//д
+end
+if(i <= 1160&& i>= 361 && state)
+begin
+    $fwrite(write_C3,"%d",C3);//д����
+    $fwrite(write_C3," ");//д
+end
+if(i <= 1280&&i >= 481 && state)
+begin
+    $fwrite(write_C4,"%d",C4);//д����
+    $fwrite(write_C4," ");//д
+end
+if(i <= 1280&&i >= 481 && state)
+begin
+    $fwrite(write_Rout,"%d",Rout);//д����
+    $fwrite(write_Rout," ");//д
+end
+end
+
+	
+
+endmodule
+
